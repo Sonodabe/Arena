@@ -1,4 +1,7 @@
 public class Agent {
+  // The environment to which this agent belongs
+  public Environment environment;
+
   // Identifier and name of agent
   public final int id;
   public String name;
@@ -36,8 +39,12 @@ public class Agent {
   }
 
   public float angle(float otherX, float otherY) {
-    float a = atan((1.0*otherY-(posY))/(abs(otherX-posX)+.000001));
-    if (posX > otherX)
+    return angle(posX, posY, otherX, otherY);
+  }
+
+  public float angle(float x1, float y1, float x2, float y2) {
+    float a = atan((1.0*y2-(y1))/(abs(x2-x1)+.000001));
+    if (x1 > x2)
       a = -a+3.14;
 
     if (a < 0)
@@ -47,11 +54,35 @@ public class Agent {
   }
 
   public void display() {
+    pushStyle();
     pushMatrix();
+
     translate(posX, posY);
     rotate(heading+PI/2);
     image(AGENT_IMAGE, -.5*19, -0.6522*19);
+
     popMatrix();
+    popStyle();
+  }
+
+  void lookAt(float x, float y) {
+    heading = angle(x, y);
+  }
+
+  void move(float deltaX, float deltaY) {
+    float candidateX = posX + deltaX;
+    float candidateY = posY + deltaY;
+
+    if (environment != null) {
+      boolean validMove = environment.validMove(posX, posY, candidateX, candidateY);
+
+      if (!validMove) {
+        return;
+      }
+    }
+
+    posX = candidateX;
+    posY = candidateY;
   }
 }
 
