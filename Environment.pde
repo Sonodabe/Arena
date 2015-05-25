@@ -12,7 +12,7 @@ public class Environment {
     1, -1, 0, 0
   };
 
-  private final int blockSize = 25;
+  private final int blockSize = 24;
 
   private ArrayList<Agent> agents;
 
@@ -25,7 +25,7 @@ public class Environment {
 
     for (int i = 0; i < blocks.length; i++) {
       for (int j = 0; j < blocks[i].length; j++) {
-        blocks[i][j] = random(100) < 100? WALKABLE : OBSTACLE;
+        blocks[i][j] = random(100) < 80? WALKABLE : OBSTACLE;
       }
     }
   }
@@ -52,7 +52,7 @@ public class Environment {
       return null;
     }
 
-    Agent temp = new Agent(posX * blockSize, posY * blockSize);
+    Agent temp = new Agent((int)((posX+.5) * blockSize), (int)((posY+.5) * blockSize));
     add(temp);
     return temp;
   }

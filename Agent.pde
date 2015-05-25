@@ -13,7 +13,7 @@ public class Agent {
   private LinkedList<Point> targets;
 
   // The speed of the agent
-  public float speed = 3.2;
+  public float speed = 1.7;
 
   // The direction of the agent
   public float heading;
@@ -71,7 +71,8 @@ public class Agent {
   }
 
   public void lookAt(Point p) {
-    heading = angle(p.x, p.y);
+    if (p != null)
+      heading = angle(p.x, p.y);
   }
 
   public boolean move(int deltaX, int deltaY) {
@@ -93,12 +94,12 @@ public class Agent {
       Point target = targets.peek();
       float targetDist = dist(position.x, position.y, target.x, target.y);
       if (targetDist > 2) {
-        lookAt(target);
         int deltaX = (int)(speed * (target.x - position.x) / targetDist);
         int deltaY = (int)(speed * (target.y - position.y) / targetDist);
         move(deltaX, deltaY);
       } else {
         targets.pop();
+        lookAt(targets.peek());
       }
     }
   }

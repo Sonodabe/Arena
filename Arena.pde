@@ -10,8 +10,8 @@ public void setup() {
   smooth();
   loadImages();
 
-  e = new Environment(24, 24);
-  a = e.add(12, 12);
+  e = new Environment(30, 30);
+  a = e.add(5, 5);
 }
 
 public void draw() {
@@ -23,7 +23,7 @@ public void keyPressed() {
   e.toggleSquare(mouseX, mouseY);
 }
 
-public void mousePressed() {
+public void mouseClicked() {
   a.set(new Point(mouseX, mouseY));
 }
 
