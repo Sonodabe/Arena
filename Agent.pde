@@ -7,26 +7,31 @@ public class Agent {
   public String name;
 
   // Position of agent
-  public float posX;
-  public float posY;
+  public Point position;
+
+  // Target of agent
+  private LinkedList<Point> targets;
+
+  // The speed of the agent
+  public float speed = 3.2;
 
   // The direction of the agent
   public float heading;
 
-  public Agent(String name, float posX, float posY, float heading) {
+  public Agent(String name, int posX, int posY, int heading) {
     this.name = name;
-    this.posX = posX;
-    this.posY = posY;
+    position = new Point(posX, posY);
+    targets = new LinkedList<Point>();
     this.heading = heading;
     this.id = agent_count++;
   }
 
-  public Agent(float posX, float posY, float heading) {
+  public Agent(int posX, int posY, int heading) {
     this("Agent", posX, posY, heading);
   }
 
 
-  public Agent(float posX, float posY) {
+  public Agent(int posX, int posY) {
     this(posX, posY, 0);
   }
 
@@ -35,11 +40,11 @@ public class Agent {
   }
 
   public float angle(Agent that) {
-    return angle(that.posX, that.posY);
+    return angle(that.position.x, that.position.y);
   }
 
   public float angle(float otherX, float otherY) {
-    return angle(posX, posY, otherX, otherY);
+    return angle(position.x, position.y, otherX, otherY);
   }
 
   public float angle(float x1, float y1, float x2, float y2) {
@@ -57,7 +62,7 @@ public class Agent {
     pushStyle();
     pushMatrix();
 
-    translate(posX, posY);
+    translate(position.x, position.y);
     rotate(heading+PI/2);
     image(AGENT_IMAGE, -.5*19, -0.6522*19);
 
@@ -65,24 +70,49 @@ public class Agent {
     popStyle();
   }
 
-  void lookAt(float x, float y) {
-    heading = angle(x, y);
+  public void lookAt(Point p) {
+    heading = angle(p.x, p.y);
   }
 
-  void move(float deltaX, float deltaY) {
-    float candidateX = posX + deltaX;
-    float candidateY = posY + deltaY;
+  public boolean move(int deltaX, int deltaY) {
+    int candidateX = position.x + deltaX;
+    int candidateY = position.y + deltaY;
 
-    if (environment != null) {
-      boolean validMove = environment.validMove(posX, posY, candidateX, candidateY);
+    if (environment != null && environment.validMove(position.x, position.y, candidateX, candidateY)) {
+      position.x = candidateX;
+      position.y = candidateY;
+      return true;
+    } else {
+      clear();
+      return false;
+    }
+  }
 
-      if (!validMove) {
-        return;
+  public  void update() {
+    if (!targets.isEmpty()) {
+      Point target = targets.peek();
+      float targetDist = dist(position.x, position.y, target.x, target.y);
+      if (targetDist > 2) {
+        lookAt(target);
+        int deltaX = (int)(speed * (target.x - position.x) / targetDist);
+        int deltaY = (int)(speed * (target.y - position.y) / targetDist);
+        move(deltaX, deltaY);
+      } else {
+        targets.pop();
       }
     }
+  }
 
-    posX = candidateX;
-    posY = candidateY;
+  public void clear() {
+    targets.clear();
+  }
+
+  public void add(Point p) {
+    targets.add(p);
+  }
+
+  public void set(Point p) {
+    targets = environment.search(position, p);
   }
 }
 
