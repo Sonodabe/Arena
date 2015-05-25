@@ -12,7 +12,7 @@ public class Environment {
     1, -1, 0, 0
   };
 
-  private final int blockSize = 30;
+  private final int blockSize = 25;
 
   private ArrayList<Agent> agents;
 
@@ -25,7 +25,7 @@ public class Environment {
 
     for (int i = 0; i < blocks.length; i++) {
       for (int j = 0; j < blocks[i].length; j++) {
-        blocks[i][j] = random(100) < 80? WALKABLE : OBSTACLE;
+        blocks[i][j] = random(100) < 100? WALKABLE : OBSTACLE;
       }
     }
   }
@@ -147,14 +147,14 @@ public class Environment {
 
     if  ((blocks[block1X][block1Y] != OBSTACLE) && (blocks[block2X][block2Y] != OBSTACLE)) {
       boolean[][] seen = new boolean[blocks.length][blocks[0].length];
-      LinkedList<SearchNode> queue = new LinkedList<SearchNode>();
+      PriorityQueue<SearchNode> queue = new PriorityQueue<SearchNode>();
 
       Point quantizedStart = new Point(block1X, block1Y);
       blocks[quantizedStart.x][quantizedStart.y] = SEARCHED;
       queue.add(new SearchNode(quantizedStart));
 
       while (!queue.isEmpty ()) {
-        SearchNode cur = queue.pop();
+        SearchNode cur = queue.poll();
         Point p = cur.p;
 
         seen[p.x][p.y] = true;
@@ -169,7 +169,7 @@ public class Environment {
           int childY = p.y + dy[i];
           if (inside(childX, childY) && (blocks[childX][childY] != OBSTACLE) && !seen[childX][childY]) {
             blocks[childX][childY] = SEARCHED;
-            queue.add(new SearchNode(new Point(childX, childY), cur));
+            queue.add(new SearchNode(new Point(childX, childY), cur, cur.cost+1, abs(childX-block2X) + abs(childY-block2Y)));
           }
         }
       }

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 Environment e;
 Agent a;
@@ -9,9 +10,8 @@ public void setup() {
   smooth();
   loadImages();
 
-  e = new Environment(20, 20);
-  a = new Agent(250, 250, 100);
-  e.add(a);
+  e = new Environment(24, 24);
+  a = e.add(12, 12);
 }
 
 public void draw() {
