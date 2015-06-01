@@ -109,7 +109,6 @@ public class Agent {
       position.y = candidateY;
       return true;
     } else {
-      clear();
       return false;
     }
   }
@@ -117,8 +116,8 @@ public class Agent {
   public void update() {
     steer.zero();
     seek();
-    avoid();
     //wander();
+    avoid();
     move();
   }
 

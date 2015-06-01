@@ -14,7 +14,7 @@ public class Environment {
 
   private ArrayList<Agent> agents;
 
-  public int[][] blocks;
+  private int[][] blocks;
 
   public Environment(int envWidth, int envHeight) {
     agents = new ArrayList<Agent>();
@@ -61,6 +61,7 @@ public class Environment {
 
   public void display() {
     pushStyle();
+    pushMatrix();
     stroke(0, 50);
     strokeWeight(2);
     rectMode(CORNER);
@@ -77,6 +78,7 @@ public class Environment {
     }
 
     popStyle();
+    popMatrix();
   }
 
   public void update() {
@@ -89,23 +91,31 @@ public class Environment {
     return posX >= 0 && posX < blocks.length && posY >= 0 && posY < blocks[0].length;
   }
 
-  public void toggleSquare(int x, int y) {
-    int posX = x/blockSize;
-    int posY = y/blockSize;
-
+  public void toggleIndex(int posX, int posY) {
     if (inside(posX, posY)) {
       blocks[posX][posY] = blocks[posX][posY] == OBSTACLE ? WALKABLE : OBSTACLE;
     }
   }
 
+  public void toggleCoordinate(int x, int y) {
+    if (x < 0 || y < 0)
+      return;
+
+    toggleIndex(x/blockSize, y/blockSize);
+  }
+
   public boolean validMove(float x1, float y1, float x2, float y2) {
+    if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0)
+      return false;
+
     int block1X = (int)x1/blockSize;
     int block1Y = (int)y1/blockSize;
     int block2X = (int)x2/blockSize;
     int block2Y = (int)y2/blockSize;
 
     // Make sure both positions are inside this environment
-    if (!(inside(block1X, block1Y) && inside(block2X, block2Y))) {
+    if (!inside(block1X, block1Y) || !inside(block2X, block2Y)) {
+      println("NEG");
       return false;
     }
 
@@ -117,16 +127,19 @@ public class Environment {
     boolean block2 = blocks[block2X][block2Y] != OBSTACLE;
 
     if (!block1) {
+      println("FIX");
       return true;
     }
 
     // Obstacle -> walkable = true, Walkable -> obstacle = false
     if (block1 != block2) {
+      println("DIFF");
       return block2;
     } 
 
     // Restrict catty corner case
-    if (block1 && !(blocks[block2X][block1Y] != OBSTACLE) && !(blocks[block1X][block2Y] != OBSTACLE )) {
+    if (block1 && blocks[block2X][block1Y] == OBSTACLE && blocks[block1X][block2Y] == OBSTACLE) {
+      println("CC");
       return false;
     }
 

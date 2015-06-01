@@ -23,7 +23,7 @@ public void draw() {
 }
 
 public void keyPressed() {
-  e.toggleSquare(mouseX, mouseY);
+  e.toggleCoordinate(mouseX, mouseY);
 }
 
 public void mouseClicked() {
