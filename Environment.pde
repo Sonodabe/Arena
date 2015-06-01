@@ -184,6 +184,58 @@ public class Environment {
     }
   }
 
+  public Vector findBest(Vector ahead, Vector ahead2, Vector position) {
+    Vector best = null;
+    int centerX = (int)position.x/blockSize;
+    int centerY = (int)position.y/blockSize;
+    int maxSearchDistance = 2 * (int)((AVOIDANCE_AHEAD - 0.001) / blockSize) + 3;
+    for (int searchDistance = 0; searchDistance < maxSearchDistance; searchDistance++) {
+      for (int x = 1; x <= searchDistance; x++) {
+        best = process(centerX + x, centerY + searchDistance - x, ahead, ahead2, position);
+        if (best != null) return best;
+        best = process(centerX - x, centerY + searchDistance - x, ahead, ahead2, position);
+        if (best != null) return best;
+
+        if (x != searchDistance) {
+          best = process(centerX + x, centerY + x - searchDistance, ahead, ahead2, position);
+          if (best != null) return best;
+
+          best = process(centerX - x, centerY + x - searchDistance, ahead, ahead2, position);
+          if (best != null) return best;
+        }
+      }
+
+      best = process(centerX, centerY + searchDistance, ahead, ahead2, position);
+      if (best != null) return best;
+
+
+      if (searchDistance != 0) {
+        best = process(centerX, centerY - searchDistance, ahead, ahead2, position);
+        if (best != null) return best;
+      }
+    }
+
+    return null;
+  }
+
+  private Vector process(int x, int y, Vector ahead, Vector ahead2, Vector position) {
+    if (inside(x, y) && blocks[x][y] == OBSTACLE) {
+      Vector candidate = new Vector((x + 0.5) * blockSize, (y + 0.5) * blockSize);
+      if (intersects(ahead, ahead2, position, candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  private boolean intersects(Vector point, Vector obstacle) {
+    return dist(point.x, point.y, obstacle.x, obstacle.y) < OBSTACLE_RAD;
+  }
+
+  private boolean intersects(Vector ahead, Vector ahead2, Vector position, Vector obstacle) {
+    return intersects(ahead, obstacle) || intersects(ahead2, obstacle) || intersects(position, obstacle);
+  } 
+
   public void clearSearch() {
     for (int i = 0; i < blocks.length; i++) {
       for (int j = 0; j < blocks[i].length; j++) {

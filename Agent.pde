@@ -150,9 +150,10 @@ public class Agent {
     ahead2.add(position);
 
     // Find Best
-    Vector best = obstacle;
-    if (!intersects(ahead, ahead2, best)) {
-      best = null;
+    Vector best = null;
+
+    if (environment != null) {
+      best = environment.findBest(ahead, ahead2, position);
     }
 
     if (best != null) {
@@ -161,12 +162,6 @@ public class Agent {
       steer.add(avoidance);
     }
   }
-
-  private boolean intersects(Vector ahead, Vector ahead2, Vector obstacle) {
-    return dist(ahead.x, ahead.y, obstacle.x, obstacle.y) < OBSTACLE_RAD ||
-      dist(ahead2.x, ahead2.y, obstacle.x, obstacle.y) < OBSTACLE_RAD ||
-      dist(position.x, position.y, obstacle.x, obstacle.y) < OBSTACLE_RAD;
-  } 
 
   private void wander() {
     Vector circleCenter = new Vector(velocity);
@@ -203,8 +198,6 @@ public class Agent {
     if (candidatePath != null) {
       targets = candidatePath;
     }
-    // clear();
-    // add(v);
   }
 }
 

@@ -11,7 +11,7 @@ public void setup() {
   loadImages();
 
   e = new Environment(25, 25);
-  a = e.add(5, 5);
+  a = e.add(10, 3);
 }
 
 public void draw() {
@@ -19,8 +19,6 @@ public void draw() {
   e.display();
   pushStyle();
   noStroke();
-  fill(255, 155, 100, 100);
-  ellipse(obstacle.x, obstacle.y, 2 * OBSTACLE_RAD, 2 * OBSTACLE_RAD);
   popStyle();
 }
 
