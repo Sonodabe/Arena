@@ -139,17 +139,16 @@ public class Agent {
 
   private void avoid() {
     float dynamicLength = AVOIDANCE_AHEAD * velocity.length() / speed;
-          println(dynamicLength);
 
     Vector ahead = new Vector(velocity);
     ahead.normalize(dynamicLength);
-    
+
     Vector ahead2 = new Vector(velocity);
     ahead2.normalize(dynamicLength * 0.5);
-    
+
     ahead.add(position);
     ahead2.add(position);
-    
+
     // Find Best
     Vector best = obstacle;
     if (!intersects(ahead, ahead2, best)) {
