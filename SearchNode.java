@@ -1,18 +1,18 @@
 public class SearchNode implements Comparable<SearchNode> {
-  public Point p;
+  public Vector p;
   public SearchNode prev;
   public int cost;
   public int estimate;
 
-  public SearchNode(Point p) {
+  public SearchNode(Vector p) {
     this (p, null);
   }
 
-  public SearchNode(Point p, SearchNode prev) {
+  public SearchNode(Vector p, SearchNode prev) {
     this(p, prev, 1, 0);
   }
 
-  public SearchNode(Point p, SearchNode prev, int cost, int estimate) {
+  public SearchNode(Vector p, SearchNode prev, int cost, int estimate) {
     this.p = p;
     this.prev = prev;
     this.cost = cost;

@@ -7,22 +7,38 @@ public class Agent {
   public String name;
 
   // Position of agent
-  public Point position;
+  public Vector position;
 
   // Target of agent
-  private LinkedList<Point> targets;
+  private LinkedList<Vector> targets;
 
   // The speed of the agent
-  public float speed = 1.7;
+  public float speed = 1;
+
+  // The mass of the agent (affects turning)
+  public float mass = 3;
 
   // The direction of the agent
-  public float heading;
+  private float heading;
+
+  // The direction of the agent
+  private Vector velocity;
+
+  // The steer force applied each frame
+  private Vector steer;
+
+  // Random Angle for wandering
+  private float wanderAngle = 0;
 
   public Agent(String name, int posX, int posY, int heading) {
     this.name = name;
-    position = new Point(posX, posY);
-    targets = new LinkedList<Point>();
+    this.position = new Vector(posX, posY);
+    this.targets = new LinkedList<Vector>();
+
     this.heading = heading;
+    this.velocity = new Vector();
+    this.steer = new Vector();
+
     this.id = agent_count++;
   }
 
@@ -65,20 +81,29 @@ public class Agent {
     translate(position.x, position.y);
     rotate(heading+PI/2);
     image(AGENT_IMAGE, -.5*19, -0.6522*19);
-
     popMatrix();
     popStyle();
   }
 
-  public void lookAt(Point p) {
-    if (p != null)
-      heading = angle(p.x, p.y);
+  public void lookAt(Vector p) {
+    if (p != null) {
+      lookAt(p.x, p.y);
+    }
   }
 
-  public boolean move(int deltaX, int deltaY) {
-    int candidateX = position.x + deltaX;
-    int candidateY = position.y + deltaY;
+  public void lookAt(float x, float y) {
+    float candidateHeading = angle(x, y);
+    if (abs(heading - candidateHeading) > PI) {
+      heading = (heading + candidateHeading + TWO_PI) / 2;
+    } else {
+      heading = (heading + candidateHeading) / 2;
+    }
+  }
 
+  public boolean move(float deltaX, float deltaY) {
+    float candidateX = position.x + deltaX;
+    float candidateY = position.y + deltaY;
+    lookAt(candidateX, candidateY);
     if (environment != null && environment.validMove(position.x, position.y, candidateX, candidateY)) {
       position.x = candidateX;
       position.y = candidateY;
@@ -89,18 +114,80 @@ public class Agent {
     }
   }
 
-  public  void update() {
+  public void update() {
+    steer.zero();
+    seek();
+    avoid();
+    //wander();
+    move();
+  }
+
+  private void seek() {
     if (!targets.isEmpty()) {
-      Point target = targets.peek();
-      float targetDist = dist(position.x, position.y, target.x, target.y);
-      if (targetDist > 2) {
-        int deltaX = (int)(speed * (target.x - position.x) / targetDist);
-        int deltaY = (int)(speed * (target.y - position.y) / targetDist);
-        move(deltaX, deltaY);
+      Vector target = targets.peek();
+      float rad = targets.size() > 1? PATH_RADIUS : TERMINAL_RADIUS;
+      if (dist(position.x, position.y, target.x, target.y) > rad) {
+        Vector desired = position.toward(target);
+        desired.normalize(speed);
+        steer.x += desired.x - velocity.x;
+        steer.y += desired.y - velocity.y;
       } else {
         targets.pop();
-        lookAt(targets.peek());
       }
+    }
+  }
+
+  private void avoid() {
+    float dynamicLength = AVOIDANCE_AHEAD * velocity.length() / speed;
+          println(dynamicLength);
+
+    Vector ahead = new Vector(velocity);
+    ahead.normalize(dynamicLength);
+    
+    Vector ahead2 = new Vector(velocity);
+    ahead2.normalize(dynamicLength * 0.5);
+    
+    ahead.add(position);
+    ahead2.add(position);
+    
+    // Find Best
+    Vector best = obstacle;
+    if (!intersects(ahead, ahead2, best)) {
+      best = null;
+    }
+
+    if (best != null) {
+      Vector avoidance = best.toward(ahead);
+      avoidance.normalize(AVOIDANCE_FORCE);
+      steer.add(avoidance);
+    }
+  }
+
+  private boolean intersects(Vector ahead, Vector ahead2, Vector obstacle) {
+    return dist(ahead.x, ahead.y, obstacle.x, obstacle.y) < OBSTACLE_RAD ||
+      dist(ahead2.x, ahead2.y, obstacle.x, obstacle.y) < OBSTACLE_RAD ||
+      dist(position.x, position.y, obstacle.x, obstacle.y) < OBSTACLE_RAD;
+  } 
+
+  private void wander() {
+    Vector circleCenter = new Vector(velocity);
+    circleCenter.normalize(CIRCLE_DIST);
+    Vector displacement = new Vector(0, 1);
+    displacement.normalize(CIRCLE_RAD);
+    displacement.setAngle(wanderAngle);
+    wanderAngle += random(1) * ANGLE_CHANGE - ANGLE_CHANGE * .5;
+
+    steer.x += circleCenter.x + displacement.x;
+    steer.y += circleCenter.y + displacement.y;
+  }
+
+  private void move() {
+    if (steer.x != 0 || steer.y != 0) {
+      steer.truncate(speed);
+      steer.scale(1/mass);
+      velocity.add(steer);
+      velocity.truncate(speed);
+      move(velocity.x, velocity.y);
     }
   }
 
@@ -108,12 +195,17 @@ public class Agent {
     targets.clear();
   }
 
-  public void add(Point p) {
-    targets.add(p);
+  public void add(Vector v) {
+    targets.add(v);
   }
 
-  public void set(Point p) {
-    targets = environment.search(position, p);
+  public void set(Vector v) {
+    LinkedList<Vector> candidatePath = environment.search(position, v);
+    if (candidatePath != null) {
+      targets = candidatePath;
+    }
+    // clear();
+    // add(v);
   }
 }
 
