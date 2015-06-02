@@ -2,6 +2,8 @@ public class Vector {
   public float x;
   public float y;
 
+  private static final float ACCEPTABLE_DIFFERENCE = 0.0001f;
+
   public Vector(float x, float y) {
     this.x = x;
     this.y = y;
@@ -46,9 +48,11 @@ public class Vector {
     return new Vector(that.x-this.x, that.y-this.y);
   }
 
-  public void add(Vector that) {
+  public Vector add(Vector that) {
     this.x += that.x;
     this.y += that.y;
+
+    return this;
   }
 
   public void zero() {
@@ -58,6 +62,11 @@ public class Vector {
 
   public String toString() {
     return String.format("(%f, %f)", x, y);
+  }
+
+  public boolean equals(Vector that) {
+    return Math.abs(this.x - that.x) < ACCEPTABLE_DIFFERENCE &&
+      Math.abs(this.y - that.y) < ACCEPTABLE_DIFFERENCE;
   }
 }
 

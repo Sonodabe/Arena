@@ -13,12 +13,13 @@ public class Environment {
   private final int blockSize = 24;
 
   private ArrayList<Agent> agents;
+  public final Trigger onToggle;
 
   private int[][] blocks;
 
   public Environment(int envWidth, int envHeight) {
     agents = new ArrayList<Agent>();
-
+    onToggle = new Trigger();
     blocks = new int[envWidth][envHeight];
 
     for (int i = 0; i < blocks.length; i++) {
@@ -41,7 +42,7 @@ public class Environment {
       a.environment.remove(a);
     }
 
-    a.environment = this;
+    a.setEnvironment(this);
     return agents.add(a);
   }
 
@@ -95,6 +96,9 @@ public class Environment {
     if (inside(posX, posY)) {
       blocks[posX][posY] = blocks[posX][posY] == OBSTACLE ? WALKABLE : OBSTACLE;
     }
+    
+    Vector position = new Vector((int)((posX + .5) * blockSize), (int)((posY + .5) * blockSize));
+    onToggle.trigger(position, blocks[posX][posY] != OBSTACLE);
   }
 
   public void toggleCoordinate(int x, int y) {
@@ -115,7 +119,6 @@ public class Environment {
 
     // Make sure both positions are inside this environment
     if (!inside(block1X, block1Y) || !inside(block2X, block2Y)) {
-      println("NEG");
       return false;
     }
 
@@ -127,19 +130,16 @@ public class Environment {
     boolean block2 = blocks[block2X][block2Y] != OBSTACLE;
 
     if (!block1) {
-      println("FIX");
       return true;
     }
 
     // Obstacle -> walkable = true, Walkable -> obstacle = false
     if (block1 != block2) {
-      println("DIFF");
       return block2;
     } 
 
     // Restrict catty corner case
     if (block1 && blocks[block2X][block1Y] == OBSTACLE && blocks[block1X][block2Y] == OBSTACLE) {
-      println("CC");
       return false;
     }
 

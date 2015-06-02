@@ -1,6 +1,6 @@
 public class Agent {
   // The environment to which this agent belongs
-  public Environment environment;
+  private Environment environment;
 
   // Identifier and name of agent
   public final int id;
@@ -12,11 +12,14 @@ public class Agent {
   // Target of agent
   private LinkedList<Vector> targets;
 
+  // Reroute if environment changes
+  public boolean reroute;
+
   // The speed of the agent
   public float speed = 1;
 
   // The mass of the agent (affects turning)
-  public float mass = 3;
+  public float mass = 5;
 
   // The direction of the agent
   private float heading;
@@ -40,6 +43,23 @@ public class Agent {
     this.steer = new Vector();
 
     this.id = agent_count++;
+    reroute = true;
+  }
+
+  public void setEnvironment(Environment e) {
+    if (e != null) {
+      this.environment = e;
+
+      e.onToggle.subscribe(new Event() {
+        public void onTrigger(Object... params) {
+          if (reroute && !targets.isEmpty()) {
+            Vector last = targets.getLast();
+            set(last);
+          }
+        }
+      }
+      );
+    }
   }
 
   public Agent(int posX, int posY, int heading) {
@@ -170,8 +190,7 @@ public class Agent {
     displacement.setAngle(wanderAngle);
     wanderAngle += random(1) * ANGLE_CHANGE - ANGLE_CHANGE * .5;
 
-    steer.x += circleCenter.x + displacement.x;
-    steer.y += circleCenter.y + displacement.y;
+    steer.add(circleCenter).add(displacement);
   }
 
   private void move() {
