@@ -96,7 +96,7 @@ public class Environment {
     if (inside(posX, posY)) {
       blocks[posX][posY] = blocks[posX][posY] == OBSTACLE ? WALKABLE : OBSTACLE;
     }
-    
+
     Vector position = new Vector((int)((posX + .5) * blockSize), (int)((posY + .5) * blockSize));
     onToggle.trigger(position, blocks[posX][posY] != OBSTACLE);
   }
@@ -148,11 +148,15 @@ public class Environment {
   }
 
   public LinkedList<Vector> search(Vector start, Vector end) {
-    clearSearch();
     int block1X = (int)start.x/blockSize;
     int block1Y = (int)start.y/blockSize;
     int block2X = (int)end.x/blockSize;
     int block2Y = (int)end.y/blockSize;
+
+    if (start.x < 0 || start.y < 0 || end.x < 0 || end.y < 0 ||
+      !inside(block1X, block1Y) || !inside(block2X, block2Y)) {
+      return null;
+    }
 
     LinkedList<Vector> path = new LinkedList<Vector>();
 
@@ -247,15 +251,6 @@ public class Environment {
 
   private boolean intersects(Vector ahead, Vector ahead2, Vector position, Vector obstacle) {
     return intersects(ahead, obstacle) || intersects(ahead2, obstacle) || intersects(position, obstacle);
-  } 
-
-  public void clearSearch() {
-    for (int i = 0; i < blocks.length; i++) {
-      for (int j = 0; j < blocks[i].length; j++) {
-        if (blocks[i][j] != OBSTACLE)
-          blocks[i][j] = WALKABLE;
-      }
-    }
   }
 }
 
