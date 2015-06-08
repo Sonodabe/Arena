@@ -1,7 +1,4 @@
 public class Environment {
-  private final color OBSTACLE = color(255, 100, 100);
-  private final color WALKABLE = color(50, 50, 128);
-
   // Children generation
   private final int[] dx = {
     0, 0, 1, -1
@@ -15,16 +12,16 @@ public class Environment {
   private ArrayList<Agent> agents;
   public final Trigger onToggle;
 
-  private int[][] blocks;
+  private Tile[][] blocks;
 
   public Environment(int envWidth, int envHeight) {
     agents = new ArrayList<Agent>();
     onToggle = new Trigger();
-    blocks = new int[envWidth][envHeight];
+    blocks = new Tile[envWidth][envHeight];
 
     for (int i = 0; i < blocks.length; i++) {
       for (int j = 0; j < blocks[i].length; j++) {
-        blocks[i][j] = random(100) < PLACE_PROB? WALKABLE : OBSTACLE;
+        blocks[i][j] = random(100) < PLACE_PROB? Tile.Default() : Tile.Obstacle();
       }
     }
   }
@@ -62,14 +59,13 @@ public class Environment {
 
   public void display() {
     pushStyle();
-    pushMatrix();
     stroke(0, 50);
     strokeWeight(2);
     rectMode(CORNER);
 
     for (int i = 0; i < blocks.length; i++) {
       for (int j = 0; j < blocks[i].length; j++) {
-        fill(blocks[i][j]);
+        fill(blocks[i][j].c);
         rect(i * blockSize, j * blockSize, blockSize, blockSize);
       }
     }
@@ -77,9 +73,7 @@ public class Environment {
     for (Agent a : agents) {
       a.display();
     }
-
     popStyle();
-    popMatrix();
   }
 
   public void update() {
@@ -94,11 +88,11 @@ public class Environment {
 
   public void toggleIndex(int posX, int posY) {
     if (inside(posX, posY)) {
-      blocks[posX][posY] = blocks[posX][posY] == OBSTACLE ? WALKABLE : OBSTACLE;
+      blocks[posX][posY] = blocks[posX][posY].equals(Tile.Obstacle()) ? Tile.Default() : Tile.Obstacle();
     }
 
     Vector position = new Vector((int)((posX + .5) * blockSize), (int)((posY + .5) * blockSize));
-    onToggle.trigger(position, blocks[posX][posY] != OBSTACLE);
+    onToggle.trigger(position, !blocks[posX][posY].equals(Tile.Obstacle()));
   }
 
   public void toggleCoordinate(int x, int y) {
@@ -126,8 +120,8 @@ public class Environment {
       return true;
     }
 
-    boolean block1 = blocks[block1X][block1Y] != OBSTACLE;
-    boolean block2 = blocks[block2X][block2Y] != OBSTACLE;
+    boolean block1 = !blocks[block1X][block1Y].equals(Tile.Obstacle());
+    boolean block2 = !blocks[block2X][block2Y].equals(Tile.Obstacle());
 
     if (!block1) {
       return true;
@@ -139,7 +133,7 @@ public class Environment {
     } 
 
     // Restrict catty corner case
-    if (block1 && blocks[block2X][block1Y] == OBSTACLE && blocks[block1X][block2Y] == OBSTACLE) {
+    if (block1 && blocks[block2X][block1Y].equals(Tile.Obstacle()) && blocks[block1X][block2Y].equals(Tile.Obstacle())) {
       return false;
     }
 
@@ -160,7 +154,7 @@ public class Environment {
 
     LinkedList<Vector> path = new LinkedList<Vector>();
 
-    if  ((blocks[block1X][block1Y] != OBSTACLE) && (blocks[block2X][block2Y] != OBSTACLE)) {
+    if  ((!blocks[block1X][block1Y].equals(Tile.Obstacle())) && (!blocks[block2X][block2Y].equals(Tile.Obstacle()))) {
       boolean[][] seen = new boolean[blocks.length][blocks[0].length];
 
       PriorityQueue<SearchNode> queue = new PriorityQueue<SearchNode>();
@@ -183,8 +177,8 @@ public class Environment {
         for (int i = 0; i < dx.length; i++) {
           int childX = (int)p.x + dx[i];
           int childY = (int)p.y + dy[i];
-          if (inside(childX, childY) && (blocks[childX][childY] != OBSTACLE) && !seen[childX][childY]) {
-            queue.add(new SearchNode(new Vector(childX, childY), cur, cur.cost+1, abs(childX-block2X) + abs(childY-block2Y)));
+          if (inside(childX, childY) && (!blocks[childX][childY].equals(Tile.Obstacle())) && !seen[childX][childY]) {
+            queue.add(new SearchNode(new Vector(childX, childY), cur, cur.cost + blocks[childX][childY].weight, abs(childX-block2X) + abs(childY-block2Y)));
           }
         }
       }
@@ -236,7 +230,7 @@ public class Environment {
   }
 
   private Vector process(int x, int y, Vector ahead, Vector ahead2, Vector position) {
-    if (inside(x, y) && blocks[x][y] == OBSTACLE) {
+    if (inside(x, y) && blocks[x][y].equals(Tile.Obstacle())) {
       Vector candidate = new Vector((x + 0.5) * blockSize, (y + 0.5) * blockSize);
       if (intersects(ahead, ahead2, position, candidate)) {
         return candidate;

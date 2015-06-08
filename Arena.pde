@@ -4,7 +4,7 @@ import java.util.PriorityQueue;
 
 Environment e;
 Agent a;
-boolean centered = true;
+boolean centered = false;
 
 public void setup() {
   size(600, 600);
@@ -24,12 +24,14 @@ public void draw() {
   e.display();
   popMatrix();
 
-  toggleAlpha(200);
-  pushMatrix();
-  translate(10, 10);
-  scale(0.2, 0.2);
-  e.display();
-  popMatrix();
+  if (centered) {
+    toggleAlpha(200);
+    pushMatrix();
+    translate(10, 10);
+    scale(0.2, 0.2);
+    e.display();
+    popMatrix();
+  }
 }
 
 void toggleAlpha(int alpha) {
